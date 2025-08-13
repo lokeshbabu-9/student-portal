@@ -1,0 +1,738 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>🎮 Ultimate Game Hub</title>
+<style>
+  /* Reset & basics */
+  * {
+    box-sizing: border-box;
+  }
+  body {
+    margin: 0; padding: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex; flex-direction: column; align-items: center;
+    min-height: 100vh;
+    transition: background 0.5s, color 0.5s;
+    overflow-x: hidden;
+  }
+
+  /* Themes */
+  body.light {
+    background: linear-gradient(135deg, #a8edea, #fed6e3);
+    color: #333;
+  }
+  body.dark {
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #eee;
+  }
+
+  /* Splash */
+  #splash {
+    position: fixed;
+    top:0; left:0; width:100vw; height:100vh;
+    background: #2575fc;
+    display: flex; justify-content:center; align-items:center;
+    color: white; font-size: 2.5rem;
+    z-index: 9999;
+    animation: splashFadeOut 1s ease 2s forwards;
+  }
+  @keyframes splashFadeOut {
+    to {
+      opacity: 0; visibility: hidden;
+    }
+  }
+
+  /* Header */
+  header {
+    padding: 30px 20px 10px;
+    text-align: center;
+    animation: slideDown 0.8s ease forwards;
+  }
+  header h1 {
+    font-size: 3rem;
+    background: linear-gradient(to right, #ff416c, #ff4b2b);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 10px;
+  }
+  header p {
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-30px);}
+    to { opacity: 1; transform: translateY(0);}
+  }
+
+  /* Theme Toggle Button */
+  #theme-toggle {
+    position: fixed;
+    top: 15px; right: 15px;
+    background: #ff4b2b;
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    border: none;
+    color: white;
+    padding: 10px 18px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    box-shadow: 0 5px 15px rgba(255,75,43,0.6);
+    transition: transform 0.2s;
+    z-index: 1000;
+  }
+  #theme-toggle:hover {
+    transform: scale(1.1);
+  }
+
+  /* Settings */
+  #settings {
+    margin: 20px auto;
+    padding: 20px 30px;
+    max-width: 400px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    text-align: center;
+  }
+  #settings input[type=text] {
+    margin: 10px 10px 20px 10px;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    width: calc(100% - 24px);
+    max-width: 300px;
+    transition: box-shadow 0.3s;
+  }
+  #settings input[type=text]:focus {
+    box-shadow: 0 0 10px #ff416c;
+  }
+  #start-btn {
+    background: #ff416c;
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    border-radius: 30px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(255,75,43,0.6);
+    transition: transform 0.2s;
+  }
+  #start-btn:hover {
+    transform: scale(1.05);
+  }
+
+  /* Game selector buttons */
+  #games-list {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 30px auto 10px;
+  }
+  .game-btn {
+    padding: 15px 30px;
+    font-size: 1.1rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+    background: linear-gradient(45deg, #43cea2, #185a9d);
+    color: white;
+    box-shadow: 0 5px 15px rgba(24,90,157,0.6);
+    transition: transform 0.2s, box-shadow 0.3s;
+  }
+  .game-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 25px rgba(24,90,157,0.9);
+  }
+
+  /* Game container */
+  #game-container {
+    margin: 20px auto 40px;
+    max-width: 600px;
+    width: 90vw;
+    background: rgba(255,255,255,0.15);
+    border-radius: 15px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+    padding: 25px;
+    color: white;
+    min-height: 380px;
+  }
+
+  /* Status text */
+  #status {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    min-height: 30px;
+  }
+
+  /* TicTacToe grid */
+  .tictactoe-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    grid-template-rows: repeat(3, 110px);
+    gap: 15px;
+    justify-content: center;
+  }
+  .cell {
+    background: rgba(255,255,255,0.25);
+    border-radius: 15px;
+    font-size: 3rem;
+    font-weight: 800;
+    color: #ff416c;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(255,65,108,0.6);
+    transition: background 0.2s, transform 0.2s;
+    user-select: none;
+  }
+  .cell:hover {
+    background: rgba(255,65,108,0.6);
+    transform: scale(1.1);
+  }
+  .cell.disabled {
+    cursor: default;
+    background: rgba(255,65,108,0.3);
+    pointer-events: none;
+  }
+
+  /* Reset button */
+  #reset-btn {
+    margin-top: 20px;
+    background: linear-gradient(45deg, #ff416c, #ff4b2b);
+    border: none;
+    padding: 12px 30px;
+    border-radius: 50px;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(255,75,43,0.7);
+    transition: transform 0.2s;
+  }
+  #reset-btn:hover {
+    transform: scale(1.1);
+  }
+
+  /* Rock Paper Scissors Styles */
+  #rps-game {
+    text-align: center;
+  }
+  .rps-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 25px 0;
+  }
+  .rps-btn {
+    padding: 15px 25px;
+    font-size: 1.3rem;
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: 700;
+    background: linear-gradient(45deg, #f7971e, #ffd200);
+    color: #444;
+    box-shadow: 0 6px 20px rgba(255,210,0,0.6);
+    transition: transform 0.2s, box-shadow 0.3s;
+    user-select: none;
+  }
+  .rps-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 8px 30px rgba(255,210,0,0.9);
+  }
+  #rps-result {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-top: 20px;
+    min-height: 40px;
+  }
+  #rps-score {
+    margin-top: 10px;
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+
+  /* Scores display */
+  #scoreboard {
+    margin-top: 20px;
+    font-size: 1rem;
+    font-weight: 700;
+    display: flex;
+    justify-content: space-around;
+    max-width: 600px;
+  }
+  #scoreboard > div {
+    background: rgba(255,255,255,0.2);
+    padding: 10px 15px;
+    border-radius: 15px;
+    min-width: 120px;
+    text-align: center;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .tictactoe-grid {
+      grid-template-columns: repeat(3, 80px);
+      grid-template-rows: repeat(3, 80px);
+      gap: 10px;
+    }
+    .cell {
+      font-size: 2.2rem;
+    }
+    #settings input[type=text] {
+      max-width: 90vw;
+    }
+  }
+</style>
+</head>
+<body class="light">
+
+<div id="splash">Ultimate Game Hub</div>
+
+<button id="theme-toggle" aria-label="Toggle Theme">Dark Mode</button>
+
+<header>
+  <h1>Ultimate Game Hub</h1>
+  <p>Choose your game and challenge your friend or AI!</p>
+</header>
+
+<section id="settings">
+  <input type="text" id="player1" placeholder="Player 1 Name" maxlength="12" autocomplete="off" />
+  <input type="text" id="player2" placeholder="Player 2 Name (or AI)" maxlength="12" autocomplete="off" />
+  <button id="start-btn" disabled>Start Playing</button>
+  <p style="font-size:0.85rem; margin-top: 10px; color: #ff4b2b;">Enter Player 2 as "AI" for single player mode.</p>
+</section>
+
+<section id="games-list" style="display:none;">
+  <button class="game-btn" data-game="tictactoe">Tic Tac Toe</button>
+  <button class="game-btn" data-game="rps">Rock Paper Scissors</button>
+</section>
+
+<section id="game-container" aria-live="polite" aria-atomic="true"></section>
+
+<div id="scoreboard" style="display:none;">
+  <div id="ttt-score">TicTacToe: 0 - 0</div>
+  <div id="rps-scoreboard">RPS: 0 - 0</div>
+</div>
+
+<script>
+  (() => {
+    const body = document.body;
+    const splash = document.getElementById('splash');
+    const themeToggle = document.getElementById('theme-toggle');
+    const player1Input = document.getElementById('player1');
+    const player2Input = document.getElementById('player2');
+    const startBtn = document.getElementById('start-btn');
+    const gamesList = document.getElementById('games-list');
+    const gameContainer = document.getElementById('game-container');
+    const scoreboard = document.getElementById('scoreboard');
+    const tttScoreElem = document.getElementById('ttt-score');
+    const rpsScoreElem = document.getElementById('rps-scoreboard');
+
+    // Sounds
+    const clickSound = new Audio('https://actions.google.com/sounds/v1/cartoon/wood_plank_flicks.ogg');
+    const winSound = new Audio('https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg');
+
+    // Theme
+    const savedTheme = localStorage.getItem('gamehub-theme') || 'light';
+    setTheme(savedTheme);
+
+    function setTheme(theme) {
+      if(theme === 'dark'){
+        body.classList.add('dark');
+        body.classList.remove('light');
+        themeToggle.textContent = 'Light Mode';
+      } else {
+        body.classList.add('light');
+        body.classList.remove('dark');
+        themeToggle.textContent = 'Dark Mode';
+      }
+      localStorage.setItem('gamehub-theme', theme);
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const newTheme = body.classList.contains('light') ? 'dark' : 'light';
+      setTheme(newTheme);
+      clickSound.play();
+    });
+
+    // Splash fade out
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        splash.style.opacity = '0';
+        splash.style.visibility = 'hidden';
+      }, 2200);
+    });
+
+    // Enable start button only when both players entered something
+    function checkInputs() {
+      if(player1Input.value.trim() && player2Input.value.trim()){
+        startBtn.disabled = false;
+      } else {
+        startBtn.disabled = true;
+      }
+    }
+    player1Input.addEventListener('input', checkInputs);
+    player2Input.addEventListener('input', checkInputs);
+
+    // Store player names & scores
+    let players = { p1: '', p2: '', vsAI: false };
+    let tttScore = { p1: 0, p2: 0 };
+    let rpsScore = { p1: 0, p2: 0 };
+
+    // Load saved scores
+    function loadScores() {
+      const ttt = localStorage.getItem('ttt-score');
+      const rps = localStorage.getItem('rps-score');
+      if(ttt) {
+        tttScore = JSON.parse(ttt);
+      }
+      if(rps) {
+        rpsScore = JSON.parse(rps);
+      }
+      updateScoreboard();
+    }
+    loadScores();
+
+    // Update scoreboard text
+    function updateScoreboard() {
+      tttScoreElem.textContent = `${players.p1} ${tttScore.p1} - ${tttScore.p2} ${players.p2}`;
+      rpsScoreElem.textContent = `${players.p1} ${rpsScore.p1} - ${rpsScore.p2} ${players.p2}`;
+    }
+
+    // Start playing
+    startBtn.addEventListener('click', () => {
+      players.p1 = player1Input.value.trim() || 'Player 1';
+      players.p2 = player2Input.value.trim() || 'Player 2';
+      players.vsAI = players.p2.toLowerCase() === 'ai';
+
+      // Hide settings, show game choices & scoreboard
+      document.getElementById('settings').style.display = 'none';
+      gamesList.style.display = 'flex';
+      scoreboard.style.display = 'flex';
+      updateScoreboard();
+      gameContainer.innerHTML = '';
+    });
+
+    // Game selection
+    gamesList.addEventListener('click', e => {
+      if(e.target.classList.contains('game-btn')){
+        clickSound.play();
+        const game = e.target.dataset.game;
+        loadGame(game);
+      }
+    });
+
+    // Reset scores (not displayed but can be added if desired)
+    function saveScores() {
+      localStorage.setItem('ttt-score', JSON.stringify(tttScore));
+      localStorage.setItem('rps-score', JSON.stringify(rpsScore));
+    }
+
+    // --- TicTacToe Game Implementation ---
+    let tttGame = null;
+
+    function loadGame(game) {
+      gameContainer.innerHTML = '';
+      if(game === 'tictactoe'){
+        gamesList.querySelectorAll('.game-btn').forEach(b => b.disabled = false);
+        gamesList.querySelector('[data-game="tictactoe"]').disabled = true;
+        loadTicTacToe();
+      } else if(game === 'rps'){
+        gamesList.querySelectorAll('.game-btn').forEach(b => b.disabled = false);
+        gamesList.querySelector('[data-game="rps"]').disabled = true;
+        loadRPS();
+      }
+    }
+
+    // TicTacToe Class
+    class TicTacToe {
+      constructor(container, players, vsAI){
+        this.container = container;
+        this.players = players;
+        this.vsAI = vsAI;
+        this.board = Array(9).fill(null);
+        this.currentTurn = 'X';
+        this.gameOver = false;
+        this.statusElem = null;
+        this.cells = [];
+        this.init();
+      }
+      init(){
+        this.container.innerHTML = '';
+
+        this.statusElem = document.createElement('div');
+        this.statusElem.id = 'status';
+        this.container.appendChild(this.statusElem);
+
+        // Grid
+        const grid = document.createElement('div');
+        grid.className = 'tictactoe-grid';
+        this.container.appendChild(grid);
+
+        // Create cells
+        for(let i=0; i<9; i++){
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          cell.dataset.index = i;
+          cell.setAttribute('role', 'button');
+          cell.setAttribute('tabindex', '0');
+          cell.addEventListener('click', () => this.makeMove(i));
+          cell.addEventListener('keydown', e => {
+            if(e.key === 'Enter' || e.key === ' '){
+              e.preventDefault();
+              this.makeMove(i);
+            }
+          });
+          grid.appendChild(cell);
+          this.cells.push(cell);
+        }
+
+        // Reset button
+        const resetBtn = document.createElement('button');
+        resetBtn.id = 'reset-btn';
+        resetBtn.textContent = 'Reset Tic Tac Toe';
+        resetBtn.addEventListener('click', () => this.reset());
+        this.container.appendChild(resetBtn);
+
+        this.updateStatus();
+      }
+
+      updateStatus(msg){
+        if(msg){
+          this.statusElem.textContent = msg;
+        } else if(!this.gameOver) {
+          const playerName = this.currentTurn === 'X' ? this.players.p1 : this.players.p2;
+          this.statusElem.textContent = `${playerName}'s turn (${this.currentTurn})`;
+        }
+      }
+
+      makeMove(i){
+        if(this.gameOver || this.board[i]) return;
+        this.board[i] = this.currentTurn;
+        this.cells[i].textContent = this.currentTurn;
+        this.cells[i].classList.add('disabled');
+        clickSound.play();
+
+        if(this.checkWin(this.currentTurn)){
+          winSound.play();
+          this.updateStatus(`${this.getPlayerName(this.currentTurn)} wins!`);
+          this.gameOver = true;
+          this.updateScores(this.currentTurn);
+          return;
+        }
+        if(this.board.every(cell => cell !== null)){
+          this.updateStatus("It's a tie!");
+          this.gameOver = true;
+          return;
+        }
+        this.currentTurn = this.currentTurn === 'X' ? 'O' : 'X';
+        this.updateStatus();
+
+        if(this.vsAI && this.currentTurn === 'O' && !this.gameOver){
+          this.aiMove();
+        }
+      }
+
+      aiMove(){
+        // Simple AI: choose random empty cell after a small delay
+        setTimeout(() => {
+          const emptyIndices = this.board.map((v,i) => v === null ? i : null).filter(v => v !== null);
+          if(emptyIndices.length === 0) return;
+          // Pick winning move if possible
+          let move = this.findBestMove('O');
+          if(move === -1){
+            // Pick blocking move if possible
+            move = this.findBestMove('X');
+          }
+          if(move === -1){
+            // Otherwise random
+            move = emptyIndices[Math.floor(Math.random()*emptyIndices.length)];
+          }
+          this.makeMove(move);
+        }, 600);
+      }
+
+      findBestMove(player){
+        // Return winning move index or -1
+        for(let i=0; i<9; i++){
+          if(this.board[i] === null){
+            this.board[i] = player;
+            if(this.checkWin(player)){
+              this.board[i] = null;
+              return i;
+            }
+            this.board[i] = null;
+          }
+        }
+        return -1;
+      }
+
+      checkWin(player){
+        const winPatterns = [
+          [0,1,2],[3,4,5],[6,7,8],
+          [0,3,6],[1,4,7],[2,5,8],
+          [0,4,8],[2,4,6]
+        ];
+        return winPatterns.some(pattern =>
+          pattern.every(index => this.board[index] === player)
+        );
+      }
+
+      getPlayerName(turn){
+        return turn === 'X' ? this.players.p1 : this.players.p2;
+      }
+
+      updateScores(winnerTurn){
+        if(winnerTurn === 'X'){
+          tttScore.p1++;
+        } else if(winnerTurn === 'O'){
+          tttScore.p2++;
+        }
+        saveScores();
+        updateScoreboard();
+      }
+
+      reset(){
+        this.board.fill(null);
+        this.cells.forEach(c => {
+          c.textContent = '';
+          c.classList.remove('disabled');
+        });
+        this.currentTurn = 'X';
+        this.gameOver = false;
+        this.updateStatus();
+        clickSound.play();
+      }
+    }
+
+    // Load TicTacToe
+    function loadTicTacToe(){
+      tttGame = new TicTacToe(gameContainer, players, players.vsAI);
+    }
+
+    // --- Rock Paper Scissors Implementation ---
+    let rpsGame = null;
+
+    class RockPaperScissors {
+      constructor(container, players){
+        this.container = container;
+        this.players = players;
+        this.choices = ['Rock', 'Paper', 'Scissors'];
+        this.playerChoice = null;
+        this.aiMode = players.vsAI;
+        this.init();
+      }
+      init(){
+        this.container.innerHTML = '';
+        const title = document.createElement('h2');
+        title.textContent = 'Rock Paper Scissors';
+        this.container.appendChild(title);
+
+        this.statusElem = document.createElement('div');
+        this.statusElem.id = 'rps-result';
+        this.container.appendChild(this.statusElem);
+
+        const buttonsDiv = document.createElement('div');
+        buttonsDiv.className = 'rps-buttons';
+        this.container.appendChild(buttonsDiv);
+
+        this.choices.forEach(choice => {
+          const btn = document.createElement('button');
+          btn.className = 'rps-btn';
+          btn.textContent = choice;
+          btn.addEventListener('click', () => this.playerSelect(choice));
+          buttonsDiv.appendChild(btn);
+        });
+
+        this.scoreElem = document.createElement('div');
+        this.scoreElem.id = 'rps-score';
+        this.container.appendChild(this.scoreElem);
+
+        this.updateScore();
+      }
+      playerSelect(choice){
+        if(this.playerChoice) return; // Prevent multiple clicks until result
+
+        this.playerChoice = choice;
+        const aiChoice = this.aiMode ? this.choices[Math.floor(Math.random()*3)] : null;
+
+        let p1Choice, p2Choice;
+        if(this.aiMode){
+          p1Choice = choice;
+          p2Choice = aiChoice;
+        } else {
+          // 2 players mode — prompt player 2 choice
+          p2Choice = prompt(`${this.players.p2}, enter Rock, Paper or Scissors`).trim();
+          if(!this.choices.includes(capitalize(p2Choice))){
+            this.statusElem.textContent = "Invalid choice by " + this.players.p2;
+            this.playerChoice = null;
+            return;
+          }
+          p1Choice = choice;
+          p2Choice = capitalize(p2Choice);
+        }
+
+        const winner = this.getWinner(p1Choice, p2Choice);
+        let resultMsg;
+        if(winner === 0){
+          resultMsg = `It's a tie! Both chose ${p1Choice}.`;
+        } else if(winner === 1){
+          rpsScore.p1++;
+          resultMsg = `${this.players.p1} wins! ${p1Choice} beats ${p2Choice}.`;
+          winSound.play();
+        } else {
+          rpsScore.p2++;
+          resultMsg = `${this.players.p2} wins! ${p2Choice} beats ${p1Choice}.`;
+          winSound.play();
+        }
+        saveScores();
+        updateScoreboard();
+        this.statusElem.textContent = resultMsg;
+        this.updateScore();
+
+        // Reset playerChoice after 2 sec so can play again
+        setTimeout(() => {
+          this.playerChoice = null;
+          this.statusElem.textContent = '';
+          this.updateScore();
+        }, 2500);
+      }
+      updateScore(){
+        this.scoreElem.textContent = `${this.players.p1}: ${rpsScore.p1} - ${rpsScore.p2} :${this.players.p2}`;
+      }
+      getWinner(c1, c2){
+        if(c1 === c2) return 0; // tie
+        if(
+          (c1 === 'Rock' && c2 === 'Scissors') ||
+          (c1 === 'Paper' && c2 === 'Rock') ||
+          (c1 === 'Scissors' && c2 === 'Paper')
+        ) return 1;
+        return 2;
+      }
+    }
+
+    function capitalize(str){
+      if(!str) return '';
+      return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+    }
+
+    function loadRPS(){
+      rpsGame = new RockPaperScissors(gameContainer, players);
+    }
+
+  })();
+</script>
+
+</body>
+</html>
